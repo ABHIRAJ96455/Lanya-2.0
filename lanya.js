@@ -5,11 +5,9 @@ app.get('/', (req, res) => {
   res.send('Everything is up!');
 });
 
-// Render requires PORT (10000 fix removed)
-app.listen(process.env.PORT || 10000, () => {
-  console.log(`✅ Express server running`);
+app.listen(10000, () => {
+  console.log('✅ Express server running on http://localhost:10000');
 });
-
 require('dotenv').config();
 const { Client, GatewayIntentBits } = require('discord.js');
 const { LavalinkManager } = require('lavalink-client');
@@ -29,28 +27,22 @@ const client = new Client({
   ],
 });
 
-// ✅ FIXED LAVALINK NODE 100% WORKING
 client.lavalink = new LavalinkManager({
   nodes: [
     {
-      name: "MainPublicNode",
-      host: process.env.LAVALINK_HOST,        // ✔ required
-      port: Number(process.env.LAVALINK_PORT), // ✔ required
-      password: process.env.LAVALINK_PASSWORD, // ✔ required
-      secure: process.env.LAVALINK_SSL === "true" // ✔ required
-    }
+      authorization: process.env.LL_PASSWORD,
+      host: process.env.LL_HOST,
+      port: parseInt(process.env.LL_PORT, 10),
+      id: process.env.LL_NAME,
+    },
   ],
-
   sendToShard: (guildId, payload) =>
     client.guilds.cache.get(guildId)?.shard?.send(payload),
-
   autoSkip: true,
-
   client: {
     id: process.env.DISCORD_CLIENT_ID,
     username: 'Lanya',
   },
-
   playerOptions: {
     onEmptyQueue: {
       destroyAfterMs: 30_000,
@@ -59,7 +51,6 @@ client.lavalink = new LavalinkManager({
   },
 });
 
-// Colors
 const styles = {
   successColor: chalk.bold.green,
   warningColor: chalk.bold.yellow,
@@ -76,7 +67,6 @@ const styles = {
 
 global.styles = styles;
 
-// Handlers
 const handlerFiles = fs
   .readdirSync(path.join(__dirname, 'handlers'))
   .filter((file) => file.endsWith('.js'));
@@ -88,9 +78,7 @@ for (const file of handlerFiles) {
     handler(client);
   }
 }
-
 console.log(
   global.styles.successColor(`✅ Successfully loaded ${counter} handlers`)
 );
-
 client.login(process.env.DISCORD_TOKEN);
